@@ -44,20 +44,25 @@ class HomeScreenViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupFetchController()
-        prepareObservable()
+        setupObservable()
         setUpSearchBar()
-        prepareViews()
+        setupViews()
     }
 
     
-    func prepareViews() {
+}
+
+// MARK: UI CONFIGURATIONS
+
+extension HomeScreenViewController {
+    func setupViews() {
         self.title = "Home"
         
-        prepareNavigationBar()
-        prepareCollectionViews()
+        setupNavigationBar()
+        setupCollectionViews()
     }
     
-    func prepareNavigationBar() {
+    func setupNavigationBar() {
         let leftNavBarItem = UIBarButtonItem(image: UIImage(systemName: "gearshape"), style: .plain, target: self, action: #selector(showSettings))
         navigationItem.leftBarButtonItem = leftNavBarItem
         
@@ -66,7 +71,7 @@ class HomeScreenViewController: UIViewController {
         
     }
     
-    func prepareCollectionViews() {
+    func setupCollectionViews() {
         
         let favoritesCollectionViewFlowLayout = UICollectionViewFlowLayout()
         favoritesCollectionViewFlowLayout.scrollDirection = .horizontal
@@ -79,8 +84,6 @@ class HomeScreenViewController: UIViewController {
         favoritesCollectionView.showsHorizontalScrollIndicator = false
         favoritesCollectionView.register(UINib(nibName: "FavoritesCollectionViewCell", bundle: nil),
                                          forCellWithReuseIdentifier: FavoritesCollectionViewCell.identifier)
-
-        
         
         let movieListCollectionViewFlowLayout = UICollectionViewFlowLayout()
         movieListCollectionViewFlowLayout.scrollDirection = .vertical
@@ -95,10 +98,6 @@ class HomeScreenViewController: UIViewController {
         movieListCollectitonView.showsVerticalScrollIndicator = false
         movieListCollectitonView.register(UINib(nibName: "MovieCollectionViewCell", bundle: nil),
                                           forCellWithReuseIdentifier: MovieCollectionViewCell.identifier)
-        
-        
-    }
-    func prepare() {
         
     }
 }
@@ -130,11 +129,11 @@ extension HomeScreenViewController {
     }
 }
 
-
+// MARK: UI STATE OBSERVABLES
 
 extension HomeScreenViewController {
     
-    func prepareObservable() {
+    func setupObservable() {
         homeScreenViewModel.$moviesUIState.sink { state in
             switch state {
             case .initial:
@@ -217,6 +216,8 @@ extension HomeScreenViewController {
     }
 }
 
+// MARK: SEARCH BAR
+
 extension HomeScreenViewController: UISearchBarDelegate {
     func setUpSearchBar() {
         searchBar.delegate = self
@@ -240,6 +241,8 @@ extension HomeScreenViewController: UISearchBarDelegate {
     }
 }
 
+// MARK: OBJC METHODS
+
 extension HomeScreenViewController {
     @objc func showSettings() {
         print("Show settings")
@@ -251,6 +254,8 @@ extension HomeScreenViewController {
         navigationController?.pushViewController(favoritesScreenViewController, animated: true)
     }
 }
+
+// MARK: COLLECTION VIEW
 
 extension HomeScreenViewController: UICollectionViewDataSource, UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -319,6 +324,8 @@ extension HomeScreenViewController: UICollectionViewDataSource, UICollectionView
         }
     }
 }
+
+// MARK: NS FETCH REQUEST CONTROLLER
 
 extension HomeScreenViewController: NSFetchedResultsControllerDelegate {
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<any NSFetchRequestResult>) {

@@ -29,6 +29,9 @@ class FavoritesScreenViewController: UIViewController {
         setupViews()
     }
 
+}
+
+extension FavoritesScreenViewController {
     func setupViews() {
         self.title = "Favorites"
         navigationController?.navigationBar.prefersLargeTitles = true

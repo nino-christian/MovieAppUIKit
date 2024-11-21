@@ -33,6 +33,8 @@ class FavoriteMoviesManager: FavoriteMoviesManagerProtocol {
         self.mainContext = mainContext
     }
     
+    // MARK: FETCH FAVORITE MOVIES
+    
     func fetchFavoriteMovies() throws -> [MovieModel] {
         let fetchRequest = NSFetchRequest<MovieEntity>(entityName: "MovieEntity")
         var movies: [MovieModel]?
@@ -49,6 +51,8 @@ class FavoriteMoviesManager: FavoriteMoviesManagerProtocol {
         return movies ?? []
     }
     
+    // MARK: SEARCH A MOVIE IN STORAGE
+    
     func searchMovie(trackId: Int) -> Bool {
         let fetchRequest = NSFetchRequest<MovieEntity>(entityName: "MovieEntity")
         fetchRequest.fetchLimit = 1
@@ -62,6 +66,8 @@ class FavoriteMoviesManager: FavoriteMoviesManagerProtocol {
             return false
         }
     }
+    
+    // MARK: ADD A MOVIE
     
     func addMovie(add favoriteMovie: MovieModel) {
         let movieExist =  searchMovie(trackId: favoriteMovie.trackId)
@@ -90,6 +96,8 @@ class FavoriteMoviesManager: FavoriteMoviesManagerProtocol {
         }
         
     }
+    
+    // MARK: DELETE A MOVIE
     
     func deleteMovie(delete favoriteMovie: MovieModel) {
         let fetchRequest = NSFetchRequest<MovieEntity>(entityName: "MovieEntity")
