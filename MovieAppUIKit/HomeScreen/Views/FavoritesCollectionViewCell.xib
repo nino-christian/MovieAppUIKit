@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="FavoritesCollectionViewCell" id="gTV-IL-0wX" customClass="FavoritesCollectionViewCell" customModule="MovieAppUIKit" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="102" height="121"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
+                <rect key="frame" x="0.0" y="0.0" width="102" height="121"/>
+                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="C4I-LP-50s">
+                        <rect key="frame" x="21" y="30.666666666666671" width="60" height="60"/>
+                        <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="movieclapper.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="qGf-T8-6dE">
+                                <rect key="frame" x="5" y="2.9999999999999964" width="50" height="51"/>
+                                <color key="tintColor" name="appPrimary"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="50" id="awm-T7-JaX"/>
+                                    <constraint firstAttribute="height" constant="50" id="yT5-Wz-Fhr"/>
+                                </constraints>
+                            </imageView>
+                        </subviews>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstAttribute="width" constant="60" id="1TZ-5P-jJn"/>
+                            <constraint firstAttribute="height" constant="60" id="CGq-Eu-ZKa"/>
+                            <constraint firstItem="qGf-T8-6dE" firstAttribute="centerY" secondItem="C4I-LP-50s" secondAttribute="centerY" id="Wr1-Nb-Aee"/>
+                            <constraint firstItem="qGf-T8-6dE" firstAttribute="centerX" secondItem="C4I-LP-50s" secondAttribute="centerX" id="clj-sg-lFE"/>
+                        </constraints>
+                    </view>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="QEL-Wd-5kO">
+                        <rect key="frame" x="16" y="93.666666666666671" width="70" height="12"/>
+                        <constraints>
+                            <constraint firstAttribute="width" constant="70" id="eKA-Cg-1kq"/>
+                        </constraints>
+                        <fontDescription key="fontDescription" type="system" weight="light" pointSize="10"/>
+                        <nil key="textColor"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                </subviews>
+            </view>
+            <viewLayoutGuide key="safeArea" id="ZTg-uK-7eu"/>
+            <constraints>
+                <constraint firstItem="QEL-Wd-5kO" firstAttribute="top" secondItem="C4I-LP-50s" secondAttribute="bottom" constant="3" id="dyI-yb-4j8"/>
+                <constraint firstItem="C4I-LP-50s" firstAttribute="centerY" secondItem="gTV-IL-0wX" secondAttribute="centerY" id="f3F-kT-Z87"/>
+                <constraint firstItem="QEL-Wd-5kO" firstAttribute="centerX" secondItem="gTV-IL-0wX" secondAttribute="centerX" id="qiI-Jf-SVR"/>
+                <constraint firstItem="C4I-LP-50s" firstAttribute="centerX" secondItem="gTV-IL-0wX" secondAttribute="centerX" id="sp3-TV-tD6"/>
+            </constraints>
+            <size key="customSize" width="102" height="121"/>
+            <connections>
+                <outlet property="favoriteImageView" destination="qGf-T8-6dE" id="P0J-3h-X9A"/>
+                <outlet property="favoriteImageViewContainer" destination="C4I-LP-50s" id="v8T-WO-lra"/>
+                <outlet property="favoriteLabel" destination="QEL-Wd-5kO" id="QAr-vG-tPa"/>
+            </connections>
+            <point key="canvasLocation" x="152.67175572519082" y="44.718309859154935"/>
+        </collectionViewCell>
+    </objects>
+    <resources>
+        <image name="movieclapper.fill" catalog="system" width="128" height="113"/>
+        <namedColor name="appPrimary">
+            <color red="0.059000000357627869" green="0.32199999690055847" blue="0.72899997234344482" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+        </namedColor>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>

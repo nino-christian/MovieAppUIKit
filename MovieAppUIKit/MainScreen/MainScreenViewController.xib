@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="23094" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23084"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="MainScreenViewController" customModule="MovieAppUIKit" customModuleProvider="target">
+            <connections>
+                <outlet property="headingLabel" destination="xgr-pO-K0Z" id="zI7-2D-6eI"/>
+                <outlet property="loginButton" destination="QD0-Xs-Q6M" id="fCp-Cd-uF0"/>
+                <outlet property="signupButton" destination="dPk-vA-d4M" id="hm0-UR-cKS"/>
+                <outlet property="subheadingLabel" destination="ht7-nj-S9r" id="hEL-Lf-TxG"/>
+                <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="i5M-Pr-FkT">
+            <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="movieWatch" translatesAutoresizingMaskIntoConstraints="NO" id="Xqu-xR-Og9">
+                    <rect key="frame" x="0.0" y="59" width="393" height="280"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="280" id="ciB-S8-7gZ"/>
+                    </constraints>
+                </imageView>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Login to an account so you could access features." textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ht7-nj-S9r">
+                    <rect key="frame" x="40" y="429" width="313" height="40.666666666666686"/>
+                    <fontDescription key="fontDescription" type="system" weight="medium" pointSize="17"/>
+                    <nil key="textColor"/>
+                    <nil key="highlightedColor"/>
+                </label>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="QD0-Xs-Q6M">
+                    <rect key="frame" x="40" y="713" width="313" height="35"/>
+                    <state key="normal" title="Button"/>
+                    <buttonConfiguration key="configuration" style="filled" title="login_button" cornerStyle="large"/>
+                </button>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Access more with an account" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="xgr-pO-K0Z">
+                    <rect key="frame" x="40" y="359" width="313" height="55"/>
+                    <fontDescription key="fontDescription" type="boldSystem" pointSize="23"/>
+                    <nil key="textColor"/>
+                    <nil key="highlightedColor"/>
+                </label>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dPk-vA-d4M">
+                    <rect key="frame" x="40" y="763" width="313" height="35"/>
+                    <state key="normal" title="Button"/>
+                    <buttonConfiguration key="configuration" style="plain" title="signup_button"/>
+                </button>
+            </subviews>
+            <viewLayoutGuide key="safeArea" id="fnl-2z-Ty3"/>
+            <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+            <constraints>
+                <constraint firstItem="ht7-nj-S9r" firstAttribute="top" secondItem="xgr-pO-K0Z" secondAttribute="bottom" constant="15" id="49l-xq-gMT"/>
+                <constraint firstItem="ht7-nj-S9r" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" constant="40" id="5lk-dM-mmI"/>
+                <constraint firstItem="xgr-pO-K0Z" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" constant="40" id="EQh-xt-0UA"/>
+                <constraint firstItem="dPk-vA-d4M" firstAttribute="top" secondItem="QD0-Xs-Q6M" secondAttribute="bottom" constant="15" id="FyE-rG-rq3"/>
+                <constraint firstItem="xgr-pO-K0Z" firstAttribute="top" secondItem="Xqu-xR-Og9" secondAttribute="bottom" constant="20" id="XyY-At-sy0"/>
+                <constraint firstItem="QD0-Xs-Q6M" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" constant="40" id="ZcG-PM-GX0"/>
+                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="xgr-pO-K0Z" secondAttribute="trailing" constant="40" id="Zeb-bO-yFP"/>
+                <constraint firstItem="dPk-vA-d4M" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" constant="40" id="aVU-CJ-nWJ"/>
+                <constraint firstItem="fnl-2z-Ty3" firstAttribute="bottom" secondItem="dPk-vA-d4M" secondAttribute="bottom" constant="20" id="daW-k5-AqM"/>
+                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="QD0-Xs-Q6M" secondAttribute="trailing" constant="40" id="i95-id-tQd"/>
+                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="dPk-vA-d4M" secondAttribute="trailing" constant="40" id="ocN-4S-yWg"/>
+                <constraint firstItem="fnl-2z-Ty3" firstAttribute="trailing" secondItem="ht7-nj-S9r" secondAttribute="trailing" constant="40" id="qxl-Sd-qJ5"/>
+                <constraint firstItem="Xqu-xR-Og9" firstAttribute="trailing" secondItem="fnl-2z-Ty3" secondAttribute="trailing" id="rbB-UB-xlK"/>
+                <constraint firstItem="Xqu-xR-Og9" firstAttribute="top" secondItem="fnl-2z-Ty3" secondAttribute="top" id="xGr-1i-ays"/>
+                <constraint firstItem="Xqu-xR-Og9" firstAttribute="leading" secondItem="fnl-2z-Ty3" secondAttribute="leading" id="yPB-C2-deU"/>
+            </constraints>
+            <point key="canvasLocation" x="59" y="20"/>
+        </view>
+    </objects>
+    <resources>
+        <image name="movieWatch" width="170.66667175292969" height="170.66667175292969"/>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>
