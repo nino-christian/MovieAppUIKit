@@ -25,7 +25,7 @@ final class HomeScreenViewModel: HomeScreenViewModelProtocol{
     var favoriteMoviesManager: FavoriteMoviesManager
     
     init(homeScreenService: HomeScreenServiceProtocol,
-         favoriteMoviesManager: FavoriteMoviesManager = FavoriteMoviesManager()) {
+         favoriteMoviesManager: FavoriteMoviesManager) {
         self.homeScreenService = homeScreenService
         self.favoriteMoviesManager = favoriteMoviesManager
     }

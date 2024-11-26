@@ -19,7 +19,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let isUserAuthenticated = true
         
         let homeScreenService: HomeScreenServiceProtocol = HomeScreenService()
-        let homeScreenViewModel: HomeScreenViewModel = HomeScreenViewModel(homeScreenService: homeScreenService)
+        let favoriteMoviesManager: FavoriteMoviesManager = FavoriteMoviesManager()
+        let homeScreenViewModel: HomeScreenViewModel = HomeScreenViewModel(homeScreenService: homeScreenService, favoriteMoviesManager: favoriteMoviesManager)
         
         let rootViewController: UIViewController = if isUserAuthenticated { HomeScreenViewController(homeScreenViewModel: homeScreenViewModel) } else { MainScreenViewController() }
         
