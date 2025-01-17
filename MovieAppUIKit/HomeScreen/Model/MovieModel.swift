@@ -9,10 +9,11 @@ import Foundation
 
 struct MovieResponse: Codable {
     let resultCount: Int
-    let results: [MovieModel?]
+    let results: [MovieModel]
 }
 
-struct MovieModel: Codable {
+struct MovieModel: Codable, Hashable, Equatable {
+  var isFavorite: Bool = false
 //  let wrapperType: String
 //  let kind: String
 //  let collectionId: Int?
@@ -90,4 +91,10 @@ struct MovieModel: Codable {
   }
     
     
+  func hash(into hasher: inout Hasher) {
+      hasher.combine(trackId)
+  }
+  static func == (lhs: MovieModel, rhs: MovieModel) -> Bool {
+      return lhs.trackId == rhs.trackId && lhs.isFavorite == rhs.isFavorite
+    }
 }

@@ -10,6 +10,11 @@ import Combine
 import CoreData
 
 class HomeScreenViewController: UIViewController {
+    
+    enum CollectionViewType: CaseIterable {
+        case favorites
+        case movieList
+    }
 
     @IBOutlet weak var favoritesCollectionView: UICollectionView!
     @IBOutlet weak var movieListCollectitonView: UICollectionView!
@@ -27,6 +32,7 @@ class HomeScreenViewController: UIViewController {
     
     private var cancellables: Set<AnyCancellable> = []
     private var searchTextPublisher =  PassthroughSubject<String, Never>()
+    private var movieCollectionDataSource: UICollectionViewDiffableDataSource<CollectionViewType, MovieModel>!
     
     private var homeScreenViewModel: HomeScreenViewModel
     
@@ -43,10 +49,12 @@ class HomeScreenViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        configureDataSource()
         setupFetchController()
         setupObservable()
         setUpSearchBar()
         setupViews()
+       
     }
 
     
@@ -85,21 +93,21 @@ extension HomeScreenViewController {
         favoritesCollectionView.register(UINib(nibName: "FavoritesCollectionViewCell", bundle: nil),
                                          forCellWithReuseIdentifier: FavoritesCollectionViewCell.identifier)
         
-        let movieListCollectionViewFlowLayout = UICollectionViewFlowLayout()
-        movieListCollectionViewFlowLayout.scrollDirection = .vertical
-        movieListCollectionViewFlowLayout.minimumInteritemSpacing = 5
-        movieListCollectionViewFlowLayout.minimumLineSpacing = 5
-        let itemWidth = (movieListCollectitonView.frame.width) / 2
-        let itemHeight = 250.0
-        movieListCollectionViewFlowLayout.itemSize = CGSize(width: itemWidth, height: itemHeight)
-        movieListCollectitonView.collectionViewLayout = movieListCollectionViewFlowLayout
-        movieListCollectitonView.delegate = self
-        movieListCollectitonView.dataSource = self
+//        let movieListCollectionViewFlowLayout = UICollectionViewFlowLayout()
+//        movieListCollectionViewFlowLayout.scrollDirection = .vertical
+//        movieListCollectionViewFlowLayout.minimumInteritemSpacing = 5
+//        movieListCollectionViewFlowLayout.minimumLineSpacing = 5
+//        let itemWidth = (movieListCollectitonView.frame.width) / 2
+//        let itemHeight = 250.0
+//        movieListCollectionViewFlowLayout.itemSize = CGSize(width: itemWidth, height: itemHeight)
+        movieListCollectitonView.collectionViewLayout = createMovieCollectionView()
         movieListCollectitonView.showsVerticalScrollIndicator = false
-        movieListCollectitonView.register(UINib(nibName: "MovieCollectionViewCell", bundle: nil),
-                                          forCellWithReuseIdentifier: MovieCollectionViewCell.identifier)
-        
+        movieListCollectitonView.delegate = self
     }
+    
+//    func configCollectionViewLayout() -> UICollectionViewLayout {
+//        
+//    }
 }
 
 extension HomeScreenViewController {
@@ -156,7 +164,6 @@ extension HomeScreenViewController {
                 if !data.isEmpty {
                     self.movieListEmptyView.isHidden = true
                     self.movieListCollectitonView.isHidden = false
-                    self.movieListCollectitonView.reloadData()
                 } else {
                     self.movieListEmptyView.isHidden = false
                     self.movieListCollectitonView.isHidden = true
@@ -213,6 +220,12 @@ extension HomeScreenViewController {
 //            }
 //        }
 //        .store(in: &cancellables)
+        homeScreenViewModel.$movieResultList.sink { [weak self] movies in
+            guard let this = self else { return }
+            this.applyMovieDataSnapshot(movieList: movies)
+        
+        }
+        .store(in: &cancellables)
     }
 }
 
@@ -255,7 +268,73 @@ extension HomeScreenViewController {
     }
 }
 
+
 // MARK: COLLECTION VIEW
+extension HomeScreenViewController {
+    private func createMovieCollectionView() -> UICollectionViewLayout {
+        let layout = UICollectionViewCompositionalLayout { (sectionIndex: Int, environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection? in
+            let columns = 2
+            let spacing = CGFloat(10)
+            let itemSize: NSCollectionLayoutSize = .init(widthDimension: .fractionalWidth(1.0),
+                                                         heightDimension: .fractionalHeight(1.0))
+            let item = NSCollectionLayoutItem(layoutSize: itemSize)
+            let groupSize: NSCollectionLayoutSize = .init(widthDimension: .absolute(self.movieListCollectitonView.frame.width / 2),
+                                                          heightDimension: .absolute(250.0))
+            let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, repeatingSubitem: item, count: columns)
+            group.interItemSpacing = .fixed(spacing)
+            
+            let section = NSCollectionLayoutSection(group: group)
+            section.interGroupSpacing = spacing
+            section.contentInsets = .init(top: 0, leading: spacing, bottom: 0, trailing: spacing)
+            return section
+        }
+        
+        return layout
+    }
+    
+    private func configureDataSource() {
+        var cellRegistration = UICollectionView.CellRegistration<MovieCollectionViewCell, MovieModel>(cellNib: UINib(nibName: "MovieCollectionViewCell", bundle: nil)) { [weak self] cell, indexPath, movie in
+            guard let this = self else { return }
+            
+            let movieExist = this.homeScreenViewModel.searchMovieInFavorite(using: movie.trackId)
+            cell.isFavorite = movieExist
+            cell.updateViews(movie: movie)
+            cell.favoriteIconTappedCallback = { [weak self] in
+                guard let this = self else { return }
+                if this.homeScreenViewModel.searchMovieInFavorite(using: movie.trackId) {
+                    this.homeScreenViewModel.deleteFavoriteMovie(movie: movie)
+                    cell.isFavorite = false
+                } else {
+                    this.homeScreenViewModel.addFavoriteMovie(movie: movie)
+                    cell.isFavorite = true
+                }
+            }
+        }
+        
+        
+        movieCollectionDataSource = UICollectionViewDiffableDataSource(collectionView: movieListCollectitonView, cellProvider: { (collectionView: UICollectionView, indexPath: IndexPath, itemIdentifier: MovieModel) -> MovieCollectionViewCell? in
+            return collectionView.dequeueConfiguredReusableCell(using: cellRegistration, for: indexPath, item: itemIdentifier)
+            }
+        )
+        
+        
+    }
+    
+    private func applyMovieDataSnapshot(movieList: [MovieModel]) {
+        var movieSnapshot = NSDiffableDataSourceSnapshot<CollectionViewType, MovieModel>()
+        movieSnapshot.appendSections([.movieList])
+        movieSnapshot.appendItems(movieList)
+        movieCollectionDataSource.apply(movieSnapshot, animatingDifferences: true)
+    }
+    
+    private func applySingleMovieDataSnapshot(for updatedMovie: MovieModel) {
+        var snapshot = movieCollectionDataSource.snapshot()
+        if let index = snapshot.itemIdentifiers.firstIndex(of: updatedMovie) {
+            snapshot.reloadItems([snapshot.itemIdentifiers[index]])
+        }
+        movieCollectionDataSource.apply(snapshot, animatingDifferences: true)
+    }
+}
 
 extension HomeScreenViewController: UICollectionViewDataSource, UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -263,7 +342,7 @@ extension HomeScreenViewController: UICollectionViewDataSource, UICollectionView
             let results = fetchedResultsController?.sections?[section].numberOfObjects ?? 0
             return results
         } else if collectionView == movieListCollectitonView {
-            return homeScreenViewModel.moviesData.count
+            return homeScreenViewModel.movieResultList.count
         } else {
             return 0
         }
@@ -281,26 +360,6 @@ extension HomeScreenViewController: UICollectionViewDataSource, UICollectionView
             
             return cell
             
-        } else if collectionView == movieListCollectitonView {
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MovieCollectionViewCell.identifier,
-                                                                for: indexPath) as? MovieCollectionViewCell,
-                  let movie = homeScreenViewModel.moviesData[indexPath.row] else { return UICollectionViewCell() }
-            
-            let movieExist = homeScreenViewModel.searchMovieInFavorite(using: movie.trackId)
-            cell.isFavorite = movieExist
-            cell.updateViews(movie: movie)
-            
-            cell.favoriteIconTappedCallback = { [weak self] in
-                guard let this = self else { return }
-                if this.homeScreenViewModel.searchMovieInFavorite(using: movie.trackId) {
-                    this.homeScreenViewModel.deleteFavoriteMovie(movie: movie)
-                } else {
-                    this.homeScreenViewModel.addFavoriteMovie(movie: movie)
-                }
-                this.movieListCollectitonView.reloadItems(at: [indexPath])
-            }
-            return cell
-            
         } else {
             return UICollectionViewCell()
         }
@@ -310,12 +369,12 @@ extension HomeScreenViewController: UICollectionViewDataSource, UICollectionView
         if collectionView == favoritesCollectionView {
             
         } else if collectionView == movieListCollectitonView {
-            guard let movie = homeScreenViewModel.moviesData[indexPath.row] else { return }
+            let movie = homeScreenViewModel.movieResultList[indexPath.row]
             let movieDetailViewController = MovieDetailViewController(movieObject: movie)
             movieDetailViewController.favoriteIconCallback = { [weak self] in
                 print(indexPath)
-//                self?.movieListCollectitonView.reloadItems(at: [indexPath])
-                self?.movieListCollectitonView.reloadData()
+
+                self?.applySingleMovieDataSnapshot(for: movie)
             }
             movieDetailViewController.modalPresentationStyle = .automatic
             present(movieDetailViewController, animated: true)
@@ -350,7 +409,6 @@ extension HomeScreenViewController: NSFetchedResultsControllerDelegate {
         case .insert:
             if let newIndexPath = newIndexPath {
                 favoritesCollectionView.insertItems(at: [newIndexPath])
-                
                 if let cell = favoritesCollectionView.cellForItem(at: newIndexPath) {
                     cell.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
                     UIView.animate(withDuration: 0.3,

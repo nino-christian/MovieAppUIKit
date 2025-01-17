@@ -82,6 +82,7 @@ extension MovieCollectionViewCell {
     
     func fetchImage(from url: String) {
         guard let url = URL(string: url) else { return }
+        self.moviePosterImageView.image = UIImage(systemName: "movieclapper")
         DispatchQueue.global().async {
             if let data = try? Data(contentsOf: url) {
                 DispatchQueue.main.async {

@@ -80,7 +80,7 @@ final class FavoriteMoviesManager_Tests: XCTestCase {
     
     func test_FavoriteMoviesManager_testAddMovie_Success() throws {
         // Given
-        let movie: MovieModel = MovieModel(trackId: 1,
+        let movie: MovieModel = MovieModel(isFavorite: true, trackId: 1,
                                            trackName: "Test",
                                            artworkUrl100: "test url",
                                            trackPrice: 5.75,

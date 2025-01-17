@@ -28,17 +28,20 @@ final class HomeScreenViewModel: HomeScreenViewModelProtocol{
          favoriteMoviesManager: FavoriteMoviesManager) {
         self.homeScreenService = homeScreenService
         self.favoriteMoviesManager = favoriteMoviesManager
+        searchMovie()
     }
+    
     
     @Published var moviesUIState: UIState<[MovieModel?]> = .initial
     @Published var favoriteMoviesUIState: UIState<[MovieModel?]> = .initial
     
-    @Published var moviesData: [MovieModel?] = []
+    @Published var movieResultList: [MovieModel] = []
     @Published var favoriteMoviesData: [MovieModel?] = []
     
     var cancellables: Set<AnyCancellable> = []
     
     func fetchMovies() {
+        
         favoriteMoviesUIState = .loading
         do {
             let results = try favoriteMoviesManager.fetchFavoriteMovies()
@@ -61,12 +64,15 @@ final class HomeScreenViewModel: HomeScreenViewModelProtocol{
         favoriteMoviesManager.deleteMovie(delete: movie)
     }
     
-    func searchMovie(keywordSearchText: String) {
+    func searchMovie(keywordSearchText: String = "") {
         self.moviesUIState = .loading
         homeScreenService.searchMovie(keywordSearchText: keywordSearchText,
                                       countrySearchText: "au",
                                       mediaSearchText: "movie")
         .receive(on: RunLoop.main)
+        .removeDuplicates(by: { old, new in
+            old.results == new.results
+        })
         .sink { completion in
             switch completion {
                 case .finished:
@@ -78,7 +84,7 @@ final class HomeScreenViewModel: HomeScreenViewModelProtocol{
         } receiveValue: { movieResponse in
            
             self.moviesUIState = .success(movieResponse.results)
-            self.moviesData = movieResponse.results
+            self.movieResultList = movieResponse.results
         }
         .store(in: &cancellables)
 
