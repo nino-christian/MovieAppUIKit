@@ -11,9 +11,9 @@ import CoreData
 
 class HomeScreenViewController: UIViewController {
     
-    enum CollectionViewType: CaseIterable {
+    enum Sections: CaseIterable {
         case favorites
-        case movieList
+        case movies
     }
 
     @IBOutlet weak var favoritesCollectionView: UICollectionView!
@@ -32,11 +32,26 @@ class HomeScreenViewController: UIViewController {
     
     private var cancellables: Set<AnyCancellable> = []
     private var searchTextPublisher =  PassthroughSubject<String, Never>()
-    private var movieCollectionDataSource: UICollectionViewDiffableDataSource<CollectionViewType, MovieModel>!
+    private var movieCollectionDataSource: UICollectionViewDiffableDataSource<Sections, MovieModel>!
+    private var favoritesCollectionDataSource: UICollectionViewDiffableDataSource<Sections, NSManagedObjectID>!
     
     private var homeScreenViewModel: HomeScreenViewModel
     
-    var fetchedResultsController: NSFetchedResultsController<MovieEntity>?
+    lazy var fetchedResultsController: NSFetchedResultsController<MovieEntity> = {
+        let mainContext = CoreDataStack.shared.mainContext
+        let fetchRequest = MovieEntity.fetchRequest()
+        let sortDescriptor = NSSortDescriptor(key: "creationDate", ascending: false)
+        fetchRequest.sortDescriptors = [sortDescriptor]
+        
+        let controller = NSFetchedResultsController(
+                   fetchRequest: fetchRequest,
+                   managedObjectContext: mainContext,
+                   sectionNameKeyPath: nil,
+                   cacheName: nil
+        )
+        controller.delegate = self
+        return controller
+    }()
     
     init(homeScreenViewModel: HomeScreenViewModel) {
         self.homeScreenViewModel = homeScreenViewModel
@@ -49,6 +64,7 @@ class HomeScreenViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        configureFavoriteDataSource()
         configureDataSource()
         setupFetchController()
         setupObservable()
@@ -81,14 +97,14 @@ extension HomeScreenViewController {
     
     func setupCollectionViews() {
         
-        let favoritesCollectionViewFlowLayout = UICollectionViewFlowLayout()
-        favoritesCollectionViewFlowLayout.scrollDirection = .horizontal
-        favoritesCollectionViewFlowLayout.minimumInteritemSpacing = 3
-        favoritesCollectionViewFlowLayout.minimumLineSpacing = 5
-        favoritesCollectionViewFlowLayout.itemSize = CGSize(width: 80, height: 100)
-        favoritesCollectionView.collectionViewLayout = favoritesCollectionViewFlowLayout
+//        let favoritesCollectionViewFlowLayout = UICollectionViewFlowLayout()
+//        favoritesCollectionViewFlowLayout.scrollDirection = .horizontal
+//        favoritesCollectionViewFlowLayout.minimumInteritemSpacing = 3
+//        favoritesCollectionViewFlowLayout.minimumLineSpacing = 5
+//        favoritesCollectionViewFlowLayout.itemSize = CGSize(width: 80, height: 100)
+        favoritesCollectionView.collectionViewLayout = createFavoriteCollectionView()
+        favoritesCollectionView.dataSource = favoritesCollectionDataSource
         favoritesCollectionView.delegate = self
-        favoritesCollectionView.dataSource = self
         favoritesCollectionView.showsHorizontalScrollIndicator = false
         favoritesCollectionView.register(UINib(nibName: "FavoritesCollectionViewCell", bundle: nil),
                                          forCellWithReuseIdentifier: FavoritesCollectionViewCell.identifier)
@@ -102,6 +118,7 @@ extension HomeScreenViewController {
 //        movieListCollectionViewFlowLayout.itemSize = CGSize(width: itemWidth, height: itemHeight)
         movieListCollectitonView.collectionViewLayout = createMovieCollectionView()
         movieListCollectitonView.showsVerticalScrollIndicator = false
+        movieListCollectitonView.dataSource = movieCollectionDataSource
         movieListCollectitonView.delegate = self
     }
     
@@ -113,24 +130,9 @@ extension HomeScreenViewController {
 extension HomeScreenViewController {
     
     func setupFetchController() {
-        homeScreenViewModel.favoriteMoviesUIState = .loading
-        let mainContext = CoreDataStack.shared.mainContext
-        let fetchRequest = NSFetchRequest<MovieEntity>(entityName: "MovieEntity")
-        let sortDescriptor = NSSortDescriptor(key: "creationDate", ascending: false)
-        fetchRequest.sortDescriptors = [sortDescriptor]
-        
-        fetchedResultsController = NSFetchedResultsController<MovieEntity>(
-                   fetchRequest: fetchRequest,
-                   managedObjectContext: mainContext,
-                   sectionNameKeyPath: nil,
-                   cacheName: nil
-        )
-        fetchedResultsController?.delegate = self
-        
         do {
-            try fetchedResultsController?.performFetch()
-            favoritesCollectionView.reloadData()
-            
+            try fetchedResultsController.performFetch()
+            applyFavoriteInitialDataSnapshot()
         } catch {
             print("Failed performing fetch: \(error.localizedDescription)")
         }
@@ -157,6 +159,7 @@ extension HomeScreenViewController {
                 self.movieListCollectitonView.isHidden = true
                 self.movieListErrorView.isHidden = true
             case .success(let data):
+            
                 self.movieListInitialView.isHidden = true
                 self.movieListLoaderView.isHidden = true
                 self.movieListErrorView.isHidden = true
@@ -164,6 +167,7 @@ extension HomeScreenViewController {
                 if !data.isEmpty {
                     self.movieListEmptyView.isHidden = true
                     self.movieListCollectitonView.isHidden = false
+                    self.applyMovieDataSnapshot(movieList: data)
                 } else {
                     self.movieListEmptyView.isHidden = false
                     self.movieListCollectitonView.isHidden = true
@@ -178,54 +182,9 @@ extension HomeScreenViewController {
         }
         .store(in: &cancellables)
         
-        if let movieEntities = fetchedResultsController?.fetchedObjects {
-            if movieEntities.isEmpty {
-                self.favoritesCollectionView.isHidden = true
-                self.favoriteMovieListEmptyView.isHidden = false
-            } else {
-                self.favoritesCollectionView.isHidden = false
-                self.favoriteMovieListEmptyView.isHidden = true
-            }
-        }
+
         self.favoriteMoviewListLoaderView.isHidden = true
         self.favoriteMovieListErrorView.isHidden = true
-       
-        
-//        homeScreenViewModel.$favoriteMoviesUIState.sink { state in
-//            switch state {
-//            case .initial:
-//                break
-//            case .loading:
-//                self.favoriteMoviewListLoaderView.isHidden = false
-//                self.favoritesCollectionView.isHidden = true
-//                self.favoriteMovieListEmptyView.isHidden = true
-//                self.favoriteMovieListErrorView.isHidden = true
-//            case .success(let data):
-//                self.favoriteMoviewListLoaderView.isHidden = true
-//                self.favoriteMovieListErrorView.isHidden = true
-//                if data.isEmpty {
-//                    self.favoritesCollectionView.isHidden = true
-//                    self.favoriteMovieListEmptyView.isHidden = false
-//                } else {
-//                    self.favoritesCollectionView.isHidden = false
-//                    self.favoriteMovieListEmptyView.isHidden = true
-//                    self.favoritesCollectionView.reloadData()
-//                }
-//              
-//            case .failure(_):
-//                self.favoriteMoviewListLoaderView.isHidden = true
-//                self.favoritesCollectionView.isHidden = true
-//                self.favoriteMovieListEmptyView.isHidden = true
-//                self.favoriteMovieListErrorView.isHidden = false
-//            }
-//        }
-//        .store(in: &cancellables)
-        homeScreenViewModel.$movieResultList.sink { [weak self] movies in
-            guard let this = self else { return }
-            this.applyMovieDataSnapshot(movieList: movies)
-        
-        }
-        .store(in: &cancellables)
     }
 }
 
@@ -292,37 +251,80 @@ extension HomeScreenViewController {
         return layout
     }
     
+    private func createFavoriteCollectionView() -> UICollectionViewLayout {
+        let layout = UICollectionViewCompositionalLayout { (sectionIndex: Int, environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection? in
+            let itemSize: NSCollectionLayoutSize = .init(widthDimension: .fractionalWidth(1.0),
+                                                         heightDimension: .fractionalHeight(1.0))
+            let item: NSCollectionLayoutItem = .init(layoutSize: itemSize)
+            let groupSize: NSCollectionLayoutSize = .init(widthDimension: .absolute(80),
+                                                          heightDimension: .absolute(100))
+            let group: NSCollectionLayoutGroup = .horizontal(layoutSize: groupSize, subitems: [item])
+            let section: NSCollectionLayoutSection = .init(group: group)
+            section.orthogonalScrollingBehavior = .continuous
+            return section
+        }
+        return layout
+    }
+    private func configureFavoriteDataSource() {
+        favoritesCollectionDataSource = UICollectionViewDiffableDataSource(collectionView: favoritesCollectionView, cellProvider: { collectionView, indexPath, objectID -> UICollectionViewCell? in
+            guard let object = try? self.fetchedResultsController.managedObjectContext.existingObject(with: objectID) as? MovieEntity else {
+                fatalError("Managed object should be available")
+            }
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FavoritesCollectionViewCell.identifier, for: indexPath) as? FavoritesCollectionViewCell
+            cell?.updateViews(title: object.trackName!, posterUrl: object.artworkPoster!)
+            return cell
+            }
+        )
+    }
+    
     private func configureDataSource() {
-        var cellRegistration = UICollectionView.CellRegistration<MovieCollectionViewCell, MovieModel>(cellNib: UINib(nibName: "MovieCollectionViewCell", bundle: nil)) { [weak self] cell, indexPath, movie in
+        let cellRegistration = UICollectionView.CellRegistration<MovieCollectionViewCell, MovieModel>(cellNib: UINib(nibName: "MovieCollectionViewCell", bundle: nil)) { [weak self] cell, indexPath, movie in
             guard let this = self else { return }
             
-            let movieExist = this.homeScreenViewModel.searchMovieInFavorite(using: movie.trackId)
-            cell.isFavorite = movieExist
-            cell.updateViews(movie: movie)
+            let isFavorite = this.homeScreenViewModel.isMovieInFavorites(using: movie.trackId)
+            cell.updateViews(movie: movie, isFavorite: isFavorite)
+            
             cell.favoriteIconTappedCallback = { [weak self] in
                 guard let this = self else { return }
-                if this.homeScreenViewModel.searchMovieInFavorite(using: movie.trackId) {
+                let isFavorite = this.homeScreenViewModel.isMovieInFavorites(using: movie.trackId)
+                if isFavorite {
                     this.homeScreenViewModel.deleteFavoriteMovie(movie: movie)
-                    cell.isFavorite = false
                 } else {
                     this.homeScreenViewModel.addFavoriteMovie(movie: movie)
-                    cell.isFavorite = true
                 }
+                this.applySingleMovieDataSnapshot(for: movie)
             }
         }
         
         
         movieCollectionDataSource = UICollectionViewDiffableDataSource(collectionView: movieListCollectitonView, cellProvider: { (collectionView: UICollectionView, indexPath: IndexPath, itemIdentifier: MovieModel) -> MovieCollectionViewCell? in
-            return collectionView.dequeueConfiguredReusableCell(using: cellRegistration, for: indexPath, item: itemIdentifier)
+            return collectionView.dequeueConfiguredReusableCell(using: cellRegistration,
+                                                                for: indexPath,
+                                                                item: itemIdentifier)
             }
         )
         
         
     }
     
+    private func applyFavoriteInitialDataSnapshot() {
+        guard let fetchedObjects = fetchedResultsController.fetchedObjects else { return }
+        if fetchedObjects.isEmpty {
+            self.favoritesCollectionView.isHidden = true
+            self.favoriteMovieListEmptyView.isHidden = false
+        } else {
+            self.favoritesCollectionView.isHidden = false
+            self.favoriteMovieListEmptyView.isHidden = true
+        }
+        var snapshot = NSDiffableDataSourceSnapshot<Sections, NSManagedObjectID>()
+        snapshot.appendSections([.favorites])
+        snapshot.appendItems(fetchedObjects.map { $0.objectID })
+        favoritesCollectionDataSource.apply(snapshot, animatingDifferences: false)
+    }
+    
     private func applyMovieDataSnapshot(movieList: [MovieModel]) {
-        var movieSnapshot = NSDiffableDataSourceSnapshot<CollectionViewType, MovieModel>()
-        movieSnapshot.appendSections([.movieList])
+        var movieSnapshot = NSDiffableDataSourceSnapshot<Sections, MovieModel>()
+        movieSnapshot.appendSections([.movies])
         movieSnapshot.appendItems(movieList)
         movieCollectionDataSource.apply(movieSnapshot, animatingDifferences: true)
     }
@@ -334,52 +336,22 @@ extension HomeScreenViewController {
         }
         movieCollectionDataSource.apply(snapshot, animatingDifferences: true)
     }
+    
+   
 }
 
-extension HomeScreenViewController: UICollectionViewDataSource, UICollectionViewDelegate {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        if collectionView == favoritesCollectionView {
-            let results = fetchedResultsController?.sections?[section].numberOfObjects ?? 0
-            return results
-        } else if collectionView == movieListCollectitonView {
-            return homeScreenViewModel.movieResultList.count
-        } else {
-            return 0
-        }
-        
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        
-        if collectionView == favoritesCollectionView {
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FavoritesCollectionViewCell.identifier,
-                                                                for: indexPath) as? FavoritesCollectionViewCell,
-                  let movie = fetchedResultsController?.fetchedObjects?[indexPath.row].convertToDataModel() else { return UICollectionViewCell() }
-            cell.updateViews(title: movie.trackName,
-                             posterUrl: movie.artworkUrl100)
-            
-            return cell
-            
-        } else {
-            return UICollectionViewCell()
-        }
-    }
-    
+extension HomeScreenViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        if collectionView == favoritesCollectionView {
-            
-        } else if collectionView == movieListCollectitonView {
-            let movie = homeScreenViewModel.movieResultList[indexPath.row]
+        if collectionView == movieListCollectitonView {
+            guard case let .success(movies) = homeScreenViewModel.moviesUIState else { return }
+            let movie = movies[indexPath.row]
             let movieDetailViewController = MovieDetailViewController(movieObject: movie)
             movieDetailViewController.favoriteIconCallback = { [weak self] in
                 print(indexPath)
-
                 self?.applySingleMovieDataSnapshot(for: movie)
             }
             movieDetailViewController.modalPresentationStyle = .automatic
             present(movieDetailViewController, animated: true)
-        } else {
-            
         }
     }
 }
@@ -387,52 +359,34 @@ extension HomeScreenViewController: UICollectionViewDataSource, UICollectionView
 // MARK: NS FETCH REQUEST CONTROLLER
 
 extension HomeScreenViewController: NSFetchedResultsControllerDelegate {
-    func controllerWillChangeContent(_ controller: NSFetchedResultsController<any NSFetchRequestResult>) {
-        favoritesCollectionView.performBatchUpdates(nil, completion: nil)
-    }
-    
-    func controllerDidChangeContent(_ controller: NSFetchedResultsController<any NSFetchRequestResult>) {
-        if let movieEntities = fetchedResultsController?.fetchedObjects {
-            if movieEntities.isEmpty {
-                self.favoritesCollectionView.isHidden = true
-                self.favoriteMovieListEmptyView.isHidden = false
-            } else {
-                self.favoritesCollectionView.isHidden = false
-                self.favoriteMovieListEmptyView.isHidden = true
-            }
-        }
-    }
-    
-    func controller(_ controller: NSFetchedResultsController<any NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
-        
-        switch type {
-        case .insert:
-            if let newIndexPath = newIndexPath {
-                favoritesCollectionView.insertItems(at: [newIndexPath])
-                if let cell = favoritesCollectionView.cellForItem(at: newIndexPath) {
-                    cell.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
-                    UIView.animate(withDuration: 0.3,
-                                   delay: 0,
-                                   usingSpringWithDamping: 0.6,
-                                   initialSpringVelocity: 0.5,
-                                   options: .curveEaseOut,
-                                   animations: {
-                        cell.transform = .identity
-                    }, completion: nil)
-                    favoritesCollectionView.scrollToItem(at: newIndexPath, at: .centeredHorizontally, animated: true)
-                }
-            }
-            
-            
-        case .update: break
-        case .delete:
-            if let indexPath = indexPath {
-                favoritesCollectionView.deleteItems(at: [indexPath])
-            }
-        case .move: break
-        @unknown default:
-            fatalError("Unknown NSFetchedResultsChangeType detected.")
+    func controller(_ controller: NSFetchedResultsController<any NSFetchRequestResult>, didChangeContentWith snapshot: NSDiffableDataSourceSnapshotReference) {
+        guard let dataSource = favoritesCollectionView.dataSource as? UICollectionViewDiffableDataSource<Sections, NSManagedObjectID> else {
+            assertionFailure("The data source has not implemented snaphot support where it should")
+            return
         }
         
+        var snapshot = snapshot as NSDiffableDataSourceSnapshot<Sections, NSManagedObjectID>
+        let currentSnapshot = dataSource.snapshot() as NSDiffableDataSourceSnapshot<Sections, NSManagedObjectID>
+        
+        print("snapshot count: \(snapshot.itemIdentifiers.count)")
+        if snapshot.itemIdentifiers.isEmpty {
+            self.favoritesCollectionView.isHidden = true
+            self.favoriteMovieListEmptyView.isHidden = false
+        } else {
+            self.favoritesCollectionView.isHidden = false
+            self.favoriteMovieListEmptyView.isHidden = true
+        }
+        let reloadIdentifiers: [NSManagedObjectID] = snapshot.itemIdentifiers.compactMap { itemIdentifier in
+            guard let currentIndex = currentSnapshot.indexOfItem(itemIdentifier), let index = snapshot.indexOfItem(itemIdentifier), index == currentIndex else {
+                return nil
+            }
+            guard let existingObject = try? controller.managedObjectContext.existingObject(with: itemIdentifier), existingObject.isUpdated else { return nil }
+            return itemIdentifier
+        }
+        
+        snapshot.reloadItems(reloadIdentifiers)
+                
+        let shouldAnimate = favoritesCollectionView.numberOfSections > 0
+        favoritesCollectionDataSource.apply(snapshot, animatingDifferences: shouldAnimate)
     }
 }

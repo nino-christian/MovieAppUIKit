@@ -8,11 +8,28 @@
 import Foundation
 import Combine
 
-enum UIState<T> {
+enum UIState<T: Equatable>: Equatable {
     case initial
     case loading
     case success(T)
     case failure(Error)
+    
+    static func == (lhs: UIState<T>, rhs: UIState<T>) -> Bool {
+            switch (lhs, rhs) {
+            case (.initial, .initial):
+                return true
+            case (.loading, .loading):
+                return true
+            case (.success(let lhsValue), .success(let rhsValue)):
+                return lhsValue == rhsValue
+            case (.failure(let lhsError), .failure(let rhsError)):
+                // You might need to define how to compare errors
+                // For simplicity, we'll compare error descriptions here
+                return lhsError.localizedDescription == rhsError.localizedDescription
+            default:
+                return false
+            }
+        }
 }
 
 protocol HomeScreenViewModelProtocol: AnyObject {
@@ -32,10 +49,8 @@ final class HomeScreenViewModel: HomeScreenViewModelProtocol{
     }
     
     
-    @Published var moviesUIState: UIState<[MovieModel?]> = .initial
-    @Published var favoriteMoviesUIState: UIState<[MovieModel?]> = .initial
-    
-    @Published var movieResultList: [MovieModel] = []
+    @Published var moviesUIState: UIState<[MovieModel]> = .initial
+    @Published var favoriteMoviesUIState: UIState<[MovieModel]> = .initial
     @Published var favoriteMoviesData: [MovieModel?] = []
     
     var cancellables: Set<AnyCancellable> = []
@@ -52,7 +67,7 @@ final class HomeScreenViewModel: HomeScreenViewModelProtocol{
         }
     }
     
-    func searchMovieInFavorite(using trackId: Int) -> Bool {
+    func isMovieInFavorites(using trackId: Int) -> Bool {
         return favoriteMoviesManager.searchMovie(trackId: trackId)
     }
     
@@ -84,7 +99,6 @@ final class HomeScreenViewModel: HomeScreenViewModelProtocol{
         } receiveValue: { movieResponse in
            
             self.moviesUIState = .success(movieResponse.results)
-            self.movieResultList = movieResponse.results
         }
         .store(in: &cancellables)
 

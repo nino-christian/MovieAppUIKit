@@ -19,7 +19,7 @@ class MovieCollectionViewCell: UICollectionViewCell {
     
     var favoriteIconTappedCallback: (() -> Void)?
     
-    var isFavorite: Bool = false {
+    private var isFavorite: Bool = false {
         didSet {
             favoriteImage.image = isFavorite ? UIImage(systemName: "star.fill") : UIImage(systemName: "star")
             favoriteImage.tintColor = isFavorite ? UIColor.yellow : UIColor.white
@@ -75,9 +75,14 @@ extension MovieCollectionViewCell {
 }
 
 extension MovieCollectionViewCell {
-    func updateViews(movie: MovieModel) {
+    func updateViews(movie: MovieModel, isFavorite: Bool) {
         self.movieTitleLabel.text = movie.trackName
+        self.isFavorite = isFavorite
         fetchImage(from: movie.artworkUrl100)
+    }
+    
+    func updateFavoriteStatus(isFavorite: Bool) {
+        self.isFavorite = isFavorite
     }
     
     func fetchImage(from url: String) {

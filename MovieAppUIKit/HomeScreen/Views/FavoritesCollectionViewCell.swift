@@ -12,23 +12,18 @@ class FavoritesCollectionViewCell: UICollectionViewCell {
     static let identifier = "FavoritesCollectionViewCell"
     
     @IBOutlet weak var favoriteImageView: UIImageView!
-    @IBOutlet weak var favoriteImageViewContainer: UIView!
+    @IBOutlet weak var favoriteImageViewContainer: UIStackView!
     @IBOutlet weak var favoriteLabel: UILabel!
     
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
-        favoriteImageViewContainer.layer.cornerRadius = favoriteImageViewContainer.frame.width / 2
-        favoriteImageViewContainer.layer.borderWidth = 2
-        favoriteImageViewContainer.layer.borderColor = UIColor.appPrimary.cgColor
-        favoriteImageViewContainer.clipsToBounds = true
+        favoriteImageView.layer.cornerRadius = favoriteImageViewContainer.frame.width / 2
+        favoriteImageView.layer.borderWidth = 2
+        favoriteImageView.layer.borderColor = UIColor.appPrimary.cgColor
+        favoriteImageView.clipsToBounds = true
     }
-    
-    
-    
-
 }
-
 
 extension FavoritesCollectionViewCell {
     func updateViews(title: String, posterUrl: String) {

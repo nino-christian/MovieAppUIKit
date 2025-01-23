@@ -79,7 +79,6 @@ class MovieDetailViewController: UIViewController {
     
     @objc func favoriteIconTapped() {
         print("favoriteImageTapped")
-        favoriteIconCallback?()
         if favoriteMoviesManager.searchMovie(trackId: movieObject.trackId) {
             favoriteStatusImageView.tintColor = .gray
             favoriteStatusImageView.image = UIImage(systemName: "star")
@@ -89,6 +88,8 @@ class MovieDetailViewController: UIViewController {
             favoriteStatusImageView.image = UIImage(systemName: "star.fill")
             favoriteMoviesManager.addMovie(add: movieObject)
         }
+        
+        favoriteIconCallback?()
     }
     
     private func fetchImage(from url: String) {
